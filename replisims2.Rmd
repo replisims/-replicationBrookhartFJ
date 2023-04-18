@@ -1,0 +1,713 @@
+---
+title: Replication Report @Brookhart2006
+author1: Juan Claramunt\textsuperscript{1}, 
+author2: Felix Clouth\textsuperscript{2}
+organization1: Leiden University
+organization2: Tilburg University
+date: \today
+params:
+  iblue: 008080
+  igray: d4dbde
+documentclass: article
+fontsize: 10
+papersize: a4paper
+bibliography      : ["My Collection.bib"]
+output: 
+  RepliSimReport:::replisim_report:
+    keep_tex: TRUE
+    latex_engine: xelatex
+    resetStyleFiles: FALSE
+header-includes: 
+  - \newcommand{\iblue}{`r params$iblue`}
+  - \newcommand{\igray}{`r params$igray`}
+include-before:
+  - \renewcommand{\contentsname}{Table of Contents}
+  - \renewcommand{\pagename}{Page}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include = FALSE}
+# packages
+library(dplyr)
+library(knitr)
+library(xtable)
+
+load("ResultsEnvironment.RData")
+# settings
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+\urlstyle{same}
+
+<!--ensure urls have the same style as the rest of the text-->
+
+\maketitle
+
+Replication Report, Brookhart et al. (2006)
+
+\\subsection\*{Abstract}
+
+In this document, we describe a replication study of "Variable Selection
+for Propensity Score Models" by Brookhart et al. (Brookhart et al.
+2006). This report includes an analysis of the data-generating
+mechanism, simulation study set-up and methods described in the original
+paper, the feasibility of its implementation based on the information
+available in the original document and the results we were able to
+replicate. Furthermore, we analyze whether the presentation of the
+methods and results on the original paper can be improved. Based on
+hours results and experience...hablar un poco de los resultados y de las
+dificultades. Problema del c, de la explicacion de la parte dos y de las
+figuras. Y que la parte 1 con tablas se replica facil.
+
+\vskip 2em
+
+\noindent\makebox[\textwidth]{\large Correspondence concerning this replication report should be addressed to:}
+
+\par
+
+\noindent\makebox[\textwidth]{\large f.j.clouth@tilburguniversity.edu}
+
+\par
+
+\clearpage
+
+\section{Introduction}
+
+This replication report documents the replication attempt of the
+simulation study @Brookhart2006. Following the definition of
+@rougier_sustainable_2017-1 we understand the replication of a published
+study as writing and running new code based on the description provided
+in the original publication with the aim of obtaining the same results.
+This replication study was independently done by another pair of
+researchers. In the discussion section we will include an overview of
+the common findings an differences.
+
+\section{Method}
+
+\subsection{Information basis}
+
+This replication was conducted mainly on information provided in
+@Brookhart2006. Software code or additional information (such as
+supplementary materials) were not available. The addition of the open
+source code (according to the original paper, it exists but it is not
+published) will make much easier the replication of the study.
+Additionally, we used information provided in the splines2 and ROCR
+R-package documentation. However, this information was not referred to
+in the main article.
+
+\subsection{Data Generating Mechanism}
+
+Information provided in the above mentioned sources indicated that the
+following simulation factors were systematically varied in generating
+the artificial data.
+
+\subsubsection{Experiment 11}
+
++-------------+---+----------------------------------------------------+
+| Simulation  | N | Levels                                             |
+| factor      | o |                                                    |
+|             | . |                                                    |
+|             | l |                                                    |
+|             | e |                                                    |
+|             | v |                                                    |
+|             | e |                                                    |
+|             | l |                                                    |
+|             | s |                                                    |
++=============+===+====================================================+
+| *Varied*    |   |                                                    |
++-------------+---+----------------------------------------------------+
+| Sample size | 2 | 500, 2500                                          |
++-------------+---+----------------------------------------------------+
+| *Fixed*     |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0.5                                                |
+| \alpha_{0}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 4                                                  |
+| \alpha_{1}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 1                                                  |
+| \alpha_{2}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0                                                  |
+| \alpha_{3}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0.5                                                |
+| \alpha_{4}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $\beta_{0}$ |   | 0                                                  |
++-------------+---+----------------------------------------------------+
+| $\beta_{1}$ |   | 0.5                                                |
++-------------+---+----------------------------------------------------+
+| $\beta_{2}$ |   | 0                                                  |
++-------------+---+----------------------------------------------------+
+| $\beta_{3}$ |   | 0.75                                               |
++-------------+---+----------------------------------------------------+
+| Dichotomous |   | sampled from rbern(N,                              |
+| exposure A  |   | prob=pnorm($q=\beta_{0} +                          |
+|             |   | \beta_{1}*X_{1}+\beta_{2}*X_{2}+\beta_{3}*X_{3}$)) |
++-------------+---+----------------------------------------------------+
+| Outcome Y   |   | sampled from rpois(N,                              |
+|             |   | lamda=$exp(\alpha*{0}+*                            |
+|             |   | \alpha{1}*(((1+exp(-3*X\_{1}))\^{-1})-0.5)+\alpha\ |
+|             |   | _{2}\*X\_{2}+\alpha\_{3}\*X\_{3}+\alpha\_{4}\*A))$ |
++-------------+---+----------------------------------------------------+
+| Three       |   | independently sampled from rnorm(N, 0, 1)          |
+| covariates  |   |                                                    |
++-------------+---+----------------------------------------------------+
+
+\subsubsection{Experiment 1 (sensitivity analysis)}
+
++-------------+---+----------------------------------------------------+
+| Simulation  | N | Levels                                             |
+| factor      | o |                                                    |
+|             | . |                                                    |
+|             | l |                                                    |
+|             | e |                                                    |
+|             | v |                                                    |
+|             | e |                                                    |
+|             | l |                                                    |
+|             | s |                                                    |
++=============+===+====================================================+
+| *Varied*    |   |                                                    |
++-------------+---+----------------------------------------------------+
+| Standard    | 2 | 0.5, 1.5                                           |
+| deviation   |   |                                                    |
+| of          |   |                                                    |
+| covariates  |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           | 3 | 0.25, 0.5, 1                                       |
+| \alpha_{4}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $\beta_{0}$ | 2 | -1, 0                                              |
++-------------+---+----------------------------------------------------+
+| *Fixed*     |   |                                                    |
++-------------+---+----------------------------------------------------+
+| Sample size |   | 500                                                |
++-------------+---+----------------------------------------------------+
+| $           |   | 0.5                                                |
+| \alpha_{0}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 4                                                  |
+| \alpha_{1}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 1                                                  |
+| \alpha_{2}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0                                                  |
+| \alpha_{3}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $\beta_{1}$ |   | 0.5                                                |
++-------------+---+----------------------------------------------------+
+| $\beta_{2}$ |   | 0                                                  |
++-------------+---+----------------------------------------------------+
+| $\beta_{3}$ |   | 0.75                                               |
++-------------+---+----------------------------------------------------+
+| Dichotomous |   | sampled from rbern(N,                              |
+| exposure A  |   | prob=pnorm($q=\beta_{0} +                          |
+|             |   | \beta_{1}*X_{1}+\beta_{2}*X_{2}+\beta_{3}*X_{3}$)) |
++-------------+---+----------------------------------------------------+
+| Outcome Y   |   | sampled from rpois(N,                              |
+|             |   | lamda=$exp(\alpha*{0}+*                            |
+|             |   | \alpha{1}*(((1+exp(-3*X\_{1}))\^{-1})-0.5)+\alpha\ |
+|             |   | _{2}\*X\_{2}+\alpha\_{3}\*X\_{3}+\alpha\_{4}\*A))$ |
++-------------+---+----------------------------------------------------+
+
+\subsubsection{Experiment 2}
+
++-------------+---+----------------------------------------------------+
+| Simulation  | N | Levels                                             |
+| factor      | o |                                                    |
+|             | . |                                                    |
+|             | l |                                                    |
+|             | e |                                                    |
+|             | v |                                                    |
+|             | e |                                                    |
+|             | l |                                                    |
+|             | s |                                                    |
++=============+===+====================================================+
+| *Varied*    |   |                                                    |
++-------------+---+----------------------------------------------------+
+| Sample size | 2 | 500, 2500                                          |
++-------------+---+----------------------------------------------------+
+| $           | 2 | [0, .01, ..., .2]                                  |
+| \alpha_{1}$ | 1 |                                                    |
++-------------+---+----------------------------------------------------+
+| $\beta_{1}$ | 2 | [0, .05, ..., 1.25]                                |
+|             | 6 |                                                    |
++-------------+---+----------------------------------------------------+
+| *Fixed*     |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0.5                                                |
+| \alpha_{0}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 1                                                  |
+| \alpha_{2}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0                                                  |
+| \alpha_{3}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $           |   | 0.5                                                |
+| \alpha_{4}$ |   |                                                    |
++-------------+---+----------------------------------------------------+
+| $\beta_{0}$ |   | 0                                                  |
++-------------+---+----------------------------------------------------+
+| $\beta_{2}$ |   | 0                                                  |
++-------------+---+----------------------------------------------------+
+| $\beta_{3}$ |   | 0.75                                               |
++-------------+---+----------------------------------------------------+
+| Three       |   | independently sampled from rnorm(N, 0, 1)          |
+| covariates  |   |                                                    |
++-------------+---+----------------------------------------------------+
+| Outcome Y   |   | sampled from                                       |
+|             |   | rpois(exp($\alpha_{0}+\alpha_{1}*X_{1 }            |
+|             |   | +\alpha_{2}*X_{2}+\alpha_{3}*X_{3}+\alpha_{4}*A$)) |
++-------------+---+----------------------------------------------------+
+| Dichotomous |   | sampled from rbern(N,                              |
+| exposure A  |   | prob=pnorm($q=\beta_{0} +                          |
+|             |   | \beta_{1}*X_{1}+\beta_{2}*X_{2}+\beta_{3}*X_{3}$)) |
++-------------+---+----------------------------------------------------+
+
+The design was full-factorial in the main analyses of Experiment 1 and
+Experiment 2. For the sensitivity analyses of Experiment 1, all
+parameters were held at their default values while a single parameter
+was altered.
+
+\subsection{Research Comparison}
+
+The study compares different specifications of a propensity scores (PS)
+model using a Monte-Carlo simulation. The model examines the effects of
+the inclusion of three types of covariates: X1 (a true confounder), X2
+(a predictor of the outcome) or X3 (a variable related to the exposure
+but not the outcome).
+
+The exposure effects are estimated using two methods: (1) by adjusting
+for the PS in a multivariate outcome model in which the effect of the
+estimated PS was modeled through a regression spline. In this case, the
+propensity score model fit is given by the following formula:
+
+$$
+E[Y|\hat{PS},A] = exp \{ \lambda + \sum_k \psi_k B_k(\hat{PS}) + \gamma A \}
+$$
+
+where \$\\lambda\$ is the baseline rate, \$B_k\$ are B-spline basis
+functions and \$\\gamma\$ is the treatment effect. (2) Using
+subclassification in which strata are defined by quintiles of the
+estimated propensity scores and taking the average treatment effect
+across strata.
+
+\subsection{Performance measures}
+
+To measure the performance of the different specifications of the PS
+models of the original simulation study, the authors measured the bias,
+the variance and the mean square error of the estimates of the parameter
+$\alpha_{4}$ and the average C-stat.
+
+\subsection{Technical implementation}
+
+While the original simulation study was carried out in R version 1.9.1
+running on a Windows XP platform, our replication was implemented using
+the R programming environment version 4.0.3 on a Windows 10 environment
+(details regarding software versions can be obtained from the section
+Reproducibility Information). The corresponding R code can be obtained
+from <https://github.com/replisims/your_repo>. MISSING
+<!-- Add zenodo doi once obtained-->
+
+The following table provides an overview of replicator degrees of
+freedom, i.e. decisions that had to be made by the replicators because
+of insufficient or contradicting information. Issues were resolved by
+discussion among the replicators. Decisions were based on what the
+replicators perceived to be the most likely implementation with
+likeliness estimated by common practice and/or guideline
+recommendations. Wherever feasible multiple interpretations where
+implemented.
+
+MISSING
+
++-------------------------+-------------------------+------------------+
+| Issue                   | Replicator decision     | Justification    |
++=========================+=========================+==================+
+| It was not clear        | Estimate the PS         | It should result |
+| whether to estimate the |                         | in a better fit  |
+| PS or to calculate them |                         | for each         |
+| from the population     |                         | simulated        |
+| model                   |                         | dataset.         |
++-------------------------+-------------------------+------------------+
+| The implementation of   | We used the function    | Only available   |
+| the cubic spline        | bs() in splines         | function in R.   |
+| estimation was not      |                         | We used the      |
+| clearly explained.      | package, with           | default options. |
+| Moreover, the reference | specifying three        |                  |
+| included does not       |                         |                  |
+| provide enough insight  | knots splines::bs(PS,   |                  |
+|                         | knots =                 |                  |
+|                         |                         |                  |
+|                         | quantile(PS, probs =    |                  |
+|                         | c(0.25, 0.5,            |                  |
+|                         |                         |                  |
+|                         | 0.75)))                 |                  |
++-------------------------+-------------------------+------------------+
+| Subclassification       | We used the mean as     | It is the most   |
+| approach not fully      | estimator               | reasonable       |
+| defined. Not clear how  |                         | choice.          |
+| to obatin the estimates |                         |                  |
+| of the exposure rate    |                         |                  |
+| within strata.          |                         |                  |
++-------------------------+-------------------------+------------------+
+| No description of       | Hmisc::somers2(PS,      | Most likely      |
+| c-statistic             |                         | meaning of the   |
+|                         | data[,"exposure"])["C"] | c-statistic.     |
+|                         |                         | Most common R    |
+|                         |                         | package to       |
+|                         |                         | compute the area |
+|                         |                         | under the ROC    |
+|                         |                         | curve.           |
++-------------------------+-------------------------+------------------+
+| Some values required    | Used the same values we | If the values    |
+| for experiment 2 were   | used in experiment 1    | are omitted, the |
+| missing                 |                         | most likely      |
+|                         |                         | reason is that   |
+|                         |                         | the values are   |
+|                         |                         | the same for     |
+|                         |                         | both             |
+|                         |                         | experiments.     |
++-------------------------+-------------------------+------------------+
+| Definition and scales   | No solution             |                  |
+| of the variables        |                         |                  |
+| measured in the axes of |                         |                  |
+| the figures of          |                         |                  |
+| experiment 2 were not   |                         |                  |
+| clearly described.      |                         |                  |
++-------------------------+-------------------------+------------------+
+| Estimators of           | Use the estimators of   | It is the most   |
+| experiment 2 were not   | experiment 1 that       | reasonable       |
+| clearly explained.      | fitted better the brief | choice.          |
+|                         | explanation             |                  |
++-------------------------+-------------------------+------------------+
+| According to the        | No solution             |                  |
+| Methods section, the PS |                         |                  |
+| was adjusted using the  |                         |                  |
+| spline function in      |                         |                  |
+| experiment 2. However,  |                         |                  |
+| in the results section  |                         |                  |
+| we can find the         |                         |                  |
+| quintile approach as    |                         |                  |
+| well.                   |                         |                  |
++-------------------------+-------------------------+------------------+
+
+\subsection{C-statistic issue}
+
+In a first version of the original paper we were trying to replicate, it
+was not specified what the *c* statistic mean. Therefore, it was not
+clear what measure we were replicating nor how we were supposed to do
+so. In latter versions, it is stated that the *c*-statistics they use in
+this research is the area under the receiver operating characteristic
+(ROC) curve.
+
+\subsection{Experiment 2 issue}
+
+when trying to replicate the results of the second experiment we found
+multiple issues. First, they use multiple transformation of the results
+that are not defined on the paper (e.g. ...MISSING). Second, it is far
+more difficult to compare the results obtained in a graph than in a
+table. While we could easily check that the results we obtained for
+experiment 1 were exactly the same as the results obtained in the
+original paper, it was incredible difficult to do the same with
+experiment 2. Furthermore, there is no open code available to replicate
+these figures. These difficulties did not allow us to replicate the
+figures of experiment 2.
+
+\section{Results}
+
+MISSING CHECK. Add c values from Kim
+
+\subsection{Experiment 1}
+
+In this section we show the tables we obtain during the replication of
+experiment 1.
+
+```{=tex}
+\begin{table}
+\caption{Table 1. Simulation experiment 1, with results based on an analysis in which the propensity score is entered into an outcome model as a parametric spline term.}
+\begin{tabular}{l r r r r r r r}
+\hline
+\multicolumn{7}{c}{Variable(s) in propensity score model}\\
+\hline
+  & $X_{1}$ & $X_{2}$ & $X_{3}$ & $X_{1}$, $X_{2}$ & $X_{1}$, $X_{3}$ & $X_{2}$, $X_{3}$ & $X_{1}$, $X_{2}$, $X_{3}$\\
+\hline
+n = 500\\
+
+Bias & 0.008 & 0.601 & 0.744 & 0.006 & 0.007 & 0.744 & 0.006\\
+
+Variance & 0.030 & 0.025 & 0.047 & 0.020 & 0.040 & 0.038 & 0.030\\
+
+MSE & 0.030 & 0.386 & 0.600 & 0.020 & 0.040 & 0.591 & 0.030\\
+
+n = 2500\\
+
+Bias & 0.008 & 0.601 & 0.744 & 0.006 & 0.007 & 0.744 & 0.006\\
+
+Variance & 0.030 & 0.025 & 0.047 & 0.020 & 0.040 & 0.038 & 0.030\\
+
+MSE & 0.030 & 0.386 & 0.600 & 0.020 & 0.040 & 0.591 & 0.030\\
+\hline
+\end{tabular}
+\end{table}
+```
+```{=tex}
+\begin{table}
+\caption{Table 2. Simulation experiment 1, with results based on an analysis using
+subclassification in which strata are defined by quintiles of the estimated propensity
+score.}
+\begin{tabular}{l r r r r r r r}
+\hline
+\multicolumn{7}{c}{Variable(s) in propensity score model}\\
+\hline
+  & $X_{1}$ & $X_{2}$ & $X_{3}$ & $X_{1}$, $X_{2}$ & $X_{1}$, $X_{3}$ & $X_{2}$, $X_{3}$ & $X_{1}$, $X_{2}$, $X_{3}$\\
+\hline
+n = 500\\
+
+Bias & 0.027 & 0.607 & 0.802 & 0.030 & 0.037 & 0.801 & 0.033\\
+
+Variance & 0.022 & 0.018 & 0.050 & 0.016 & 0.048 & 0.039 & 0.038\\
+
+MSE & 0.023 & 0.386 & 0.693 & 0.016 & 0.050 & 0.680 & 0.039\\
+
+n = 2500\\
+
+Bias & 0.029 & 0.597 & 0.763 & 0.029 & 0.063 & 0.762 & 0.061\\
+
+Variance & 0.004 & 0.003 & 0.011 & 0.003 & 0.012 & 0.009 & 0.010\\
+
+MSE & 0.005 & 0.360 & 0.594 & 0.004 & 0.016 & 0.589 & 0.014\\
+\hline
+\end{tabular}
+\end{table}
+```
+```{=tex}
+\begin{table}
+\caption{Table 3. Sensitivity analysis of simulation study 1. We consider nine different perturbations of the simulation parameters. Results are from 1,000 simulations of
+data (n = 500), using a parametric spline to adjust for the estimated propensity score.}
+\begin{tabular}{l r r r r r r r}
+\hline
+\multicolumn{7}{c}{Variable(s) in propensity score model}\\
+\hline
+  & $X_{1}$ & $X_{2}$ & $X_{3}$ & $X_{1}$, $X_{2}$ & $X_{1}$, $X_{3}$ & $X_{2}$, $X_{3}$ & $X_{1}$, $X_{2}$, $X_{3}$\\
+\hline
+std1 = 0.5\\
+Bias & -0.003 & 0.281 & 0.364 & -0.006 & -0.001 & 0.360 & -0.005\\
+
+Variance & 0.031 & 0.021 & 0.047 & 0.021 & 0.041 & 0.037 & 0.029\\
+
+MSE & 0.031 & 0.101 & 0.180 & 0.021 & 0.041 & 0.166 & 0.029\\
+
+std1 = 1.5\\
+Bias & 0.008 & 0.855 & 1.009 & 0.007 & 0.004 & 1.013 & 0.008\\
+
+Variance & 0.033 & 0.028 & 0.048 & 0.024 & 0.046 & 0.040 & 0.035\\
+
+MSE & 0.033 & 0.759 & 1.066 & 0.024 & 0.046 & 1.066 & 0.035\\
+
+std2 = 0.5\\
+Bias & 0.003 & 0.595 & 0.738 & -0.001 & 0.001 & 0.734 & -0.004\\
+
+Variance & 0.007 & 0.015 & 0.020 & 0.005 & 0.011 & 0.018 & 0.009\\
+
+MSE & 0.007 & 0.369 & 0.564 & 0.005 & 0.011 & 0.557 & 0.009\\
+
+std2 = 1.5\\
+Bias & 0.015 & 0.602 & 0.751 & 0.014 & 0.019 & 0.748 & 0.014\\
+
+Variance & 0.106 & 0.055 & 0.146 & 0.090 & 0.147 & 0.122 & 0.121\\
+
+MSE & 0.106 & 0.418 & 0.710 & 0.090 & 0.147 & 0.680 & 0.121\\
+
+std3 = 0.5\\
+Bias & -0.003 & 0.698 & 0.732 & -0.004 & -0.002 & 0.732 & -0.003\\
+
+Variance & 0.032 & 0.025 & 0.045 & 0.022 & 0.038 & 0.035 & 0.027\\
+
+MSE & 0.032 & 0.512 & 0.581 & 0.022 & 0.038 & 0.571 & 0.027\\
+
+std3 = 1.5\\
+Bias & -0.001 & 0.495 & 0.734 & -0.004 & -0.006 & 0.734 & -0.008\\
+
+Variance & 0.027 & 0.022 & 0.055 & 0.021 & 0.049 & 0.044 & 0.037\\
+
+MSE & 0.028 & 0.267 & 0.593 & 0.021 & 0.049 & 0.582 & 0.038\\
+
+a4 = 0.25\\
+Bias & -0.004 & 0.593 & 0.731 & 0.000 & -0.007 & 0.737 & 0.000\\
+
+Variance & 0.032 & 0.025 & 0.049 & 0.023 & 0.044 & 0.039 & 0.033\\
+
+MSE & 0.032 & 0.377 & 0.583 & 0.023 & 0.044 & 0.582 & 0.033\\
+
+a4 = 1\\
+Bias & 0.004 & 0.601 & 0.735 & 0.005 & 0.004 & 0.735 & 0.005\\
+
+Variance & 0.033 & 0.027 & 0.052 & 0.023 & 0.047 & 0.042 & 0.035\\
+
+MSE & 0.033 & 0.387 & 0.592 & 0.023 & 0.047 & 0.582 & 0.035\\
+
+b0 = 1\\
+Bias & -0.012 & 0.562 & 0.687 & -0.010 & -0.015 & 0.690 & -0.012\\
+
+Variance & 0.034 & 0.021 & 0.052 & 0.022 & 0.047 & 0.039 & 0.032\\
+
+MSE & 0.035 & 0.337 & 0.525 & 0.022 & 0.047 & 0.515 & 0.032\\
+\hline
+\end{tabular}
+\end{table}
+```
+\subsection{Experiment 2}
+
+We were not able to replicate the figures of experiment 2.
+
+\FloatBarrier
+
+\section{Discussion}
+
+\subsection{Replicability}
+
+In general, the data-generating mechanism is easy to replicate. It is
+clearly described in the original paper and it can be easily coded.
+Also, experiment 1 can be replicated with only a few replication degrees
+of freedom. However, availability of open source code will improve its
+replicability. The initial lack of explanation for the c-statistic or
+the issue with the model with splines could have been solved easily if
+the code was available. Experiment two is more difficult to replicate,
+or, at least, the figures on the paper. The model estimation and the
+computation of the measures are similar to experiment one. However, once
+these results are obtained, it is necessary to use some transformations
+that are not explained at all in the paper. Also, as stated previously,
+replicate a complex figure is not an easy task.In fact, we were not able
+to do so. The fact that we were not able to replicate experiment 2 does
+not mean that it is not possible. It is likely that more experienced
+researchers in the field would be able to replicate experiment 2.
+
+\subsection{Replicator degrees of freedom}
+
+MISSING
+
+`<Here you can discuss the replicator degrees of freedom. What could the authors have done to make it more clear? Do you think the replicator degrees of freedom are so intensive that they sould influence the results?>`
+
+\subsection{Equivalence of results}
+
+The equivalence of results in experiment 1 is perfect. Despite using a
+different R version and code, we were able to obtain the exactly same
+tables. We cannot judge the results of experiment 2 because we were not
+able to obtain the same figures.
+
+\section{Comparison with other pair performing the same replication study}
+
+MISSING
+
+The other pair was able to perform an even more successful replication.
+Both groups were able to replicate experiment 1 with similar issues that
+we solved similarly. On the other hand, the other pair was able to
+replicate figure 2 and figure 3 from the original paper and almost able
+to replicate figure 4.
+
+A discussion between both groups leaded to the following conclusions:
+
+The order in which the method, measures and results in the paper can be
+improved in order to facilitate the understanding and replicability of
+the research.
+
+The original paper omit some basic information assuming it is common
+knowledge. However, we do not consider it common knowledge. This fact
+could explain why one of the groups was able to replicate more than the
+other. Actually, in latter versions of the paper they included
+explanations of some concepts (e.g. meaning of c-statistic).
+
+The first experiment is explained with more detail, which makes it
+easier to replicate. On the other hand, both groups consider that
+experiment two contains some concepts that are not fully explained,
+which hurts its replicability.
+
+Both groups consider that the original code of the research could be
+available publicly since it is coded in an open source programming
+laguage (R), and it does not require new functions that could be under
+copyrigth. Publishing the code will improve the replicability and
+transparency of the research.
+
+\section{Contributions}
+
+Authors made the following contributions according to the CRediT
+framework <https://casrai.org/credit/>
+
+Primary Replicator:
+
+-   Data Curation\
+-   Formal Analysis (supporting)\
+-   Investigation\
+-   Software\
+-   Visualization (lead)\
+-   Writing - Original Draft Preparation\
+-   Writing - Review & Editing
+
+Co-Pilot:
+
+-   Formal Analysis (lead)\
+-   Investigation\
+-   Software (supporting)\
+-   Visualization (supporting)\
+-   Validation\
+-   Writing - Review & Editing
+
+\newpage
+
+```{=tex}
+\section*{References}
+\begingroup
+\hphantom{x}
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
+```
+::: {#refs custom-style="Bibliography"}
+:::
+
+```{=tex}
+\FloatBarrier
+\endgroup
+\newpage
+```
+\\section\*{Appendix}
+
+\subsection{Code organization}
+
+The code and the files associated are organized in the form of a
+research compendium which can be found in the following git repository
+`https://github.com/replisims/your_repo`
+
+```{r code_structure, cache = FALSE}
+# which R packages and versions?
+if ("fs" %in% installed.packages()) fs::dir_tree(path = ".", recurse = TRUE)
+```
+
+-   `foldername`: contains `<insert description>`
+-   `filename`: contains `<insert description>`
+-   ...
+
+\\subsubsection\*{Reproducibility Information}
+
+This report was last updated on `r Sys.time()`. The simulation
+replication was conducted using the following computational environment
+and dependencies:
+
+\FloatBarrier
+
+```{r colophon, cache = FALSE}
+# which R packages and versions?
+if ("devtools" %in% installed.packages()) devtools::session_info()
+```
+
+The current Git commit details are:
+
+```{r git}
+# what commit is this file at? 
+if ("git2r" %in% installed.packages() & git2r::in_repository(path = ".")) git2r::repository(here::here())  
+```
